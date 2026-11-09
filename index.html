@@ -1,0 +1,745 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>이클립스 강화 수익 계산기</title>
+<meta name="description" content="이클립스: 더 어웨이크닝 장비 강화 확률을 기반으로 여러 아이템의 거래소 강화 장사 기대 수익을 한 번에 비교합니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{
+  --bg:#09090a; --bg2:#0f0f11; --card:#121214; --card2:#17171a; --field:#0c0c0e;
+  --text:#e6e3dc; --muted:#8b877f; --faint:#5e5a53;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+  --gold:#c9a45c; --gold2:#e2c383; --gold-dim:rgba(201,164,92,.16); --gold-ink:#15110a;
+  --good:#8ccf96; --good-dim:rgba(140,207,150,.14); --bad:#e3837a; --bad-dim:rgba(227,131,122,.14); --warn:#d9b35c;
+  --serif:"Cinzel","Cormorant Garamond","Times New Roman",serif;
+  --sans:"Pretendard Variable","Pretendard","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --r:10px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;color-scheme:dark}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.5;font-variant-numeric:tabular-nums;
+  background-image:radial-gradient(900px 420px at 50% -120px,rgba(201,164,92,.10),transparent 70%)}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 16px 72px}
+
+/* 헤더 */
+header{display:block;text-align:center;margin:8px 0 26px}
+header h1{font-family:var(--serif);font-weight:600;font-size:1.65rem;letter-spacing:.14em;margin:0;color:var(--gold2);text-transform:uppercase}
+header h1 span{display:block;font-family:var(--sans);font-weight:500;font-size:1.05rem;letter-spacing:.02em;color:var(--text);text-transform:none;margin-top:2px}
+header p{margin:10px 0 0;color:var(--muted);font-size:.86rem}
+.orn{display:flex;align-items:center;justify-content:center;gap:12px;margin:14px auto 0;max-width:420px;color:var(--gold);font-size:.6rem}
+.orn::before,.orn::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,transparent,rgba(201,164,92,.55))}
+.orn::after{background:linear-gradient(90deg,rgba(201,164,92,.55),transparent)}
+
+/* 공통 */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+h2.sec{font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin:0 0 12px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+h2.sec small{font-weight:400;color:var(--muted);font-size:.78rem;letter-spacing:0;text-transform:none}
+label{display:block;font-size:.74rem;color:var(--muted);margin-bottom:5px}
+input[type=number],input[type=text],select{width:100%;min-width:0;padding:8px 10px;border:1px solid var(--line2);border-radius:7px;background:var(--field);color:var(--text);font-size:.93rem;font-family:var(--sans);transition:border-color .15s,box-shadow .15s}
+input[type=number]{text-align:right}
+input:hover,select:hover{border-color:rgba(255,255,255,.22)}
+input:focus,select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+input::placeholder{color:var(--faint)}
+select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238b877f' stroke-width='1.4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:24px}
+button{font-family:inherit;cursor:pointer}
+.btn{padding:8px 13px;border:1px solid var(--line2);border-radius:7px;background:transparent;color:var(--text);font-size:.86rem;transition:border-color .15s,background .15s,color .15s}
+.btn:hover{border-color:var(--gold);color:var(--gold2)}
+.btn.primary{background:linear-gradient(180deg,#d4b06a,#a3823f);color:var(--gold-ink);border-color:transparent;font-weight:600}
+.btn.primary:hover{filter:brightness(1.08);color:var(--gold-ink)}
+.btn.icon{padding:4px 9px;font-size:.8rem;color:var(--muted)}
+.btn.ico{display:inline-flex;align-items:center;justify-content:center;width:28px;height:26px;padding:0;vertical-align:middle;color:var(--muted);line-height:1}
+.btn.ico+.btn.ico{margin-left:4px}
+.btn.ico svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block}
+.btn.ico .chev{display:flex}
+.btn.icon:hover{color:var(--gold2)}
+.btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+.seg{display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;background:var(--field)}
+.seg button{flex:1;min-width:0;padding:8px 6px;border:0;background:transparent;color:var(--muted);font-size:.85rem;white-space:nowrap;transition:background .15s,color .15s}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button:hover{color:var(--text)}
+.seg button.on{background:var(--gold-dim);color:var(--gold2);font-weight:600}
+.good{color:var(--good)} .bad{color:var(--bad)} .warn{color:var(--warn)} .muted{color:var(--muted)}
+.u{font-size:.72em;color:var(--muted);font-weight:400;margin-left:3px}
+.hint{font-size:.76rem;color:var(--muted);margin-top:8px}
+.note{font-size:.77rem;color:var(--muted);margin-top:10px;line-height:1.55}
+kbd{font-size:.72rem;background:var(--field);padding:1px 6px;border-radius:4px;border:1px solid var(--line2);color:var(--muted)}
+.tag{display:inline-block;padding:1px 8px;border-radius:999px;background:rgba(255,255,255,.06);color:var(--muted);font-size:.72rem}
+.tag.b{background:var(--gold-dim);color:var(--gold2)}
+
+/* 공유 설정 */
+.settings .card{padding:14px 16px}
+.stones{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px 10px;align-items:center}
+.stones .h{font-size:.72rem;color:var(--muted);text-align:right;padding-right:2px}
+.stones .h.t{color:var(--gold);letter-spacing:.06em;text-align:left}
+.stones .rl{font-size:.82rem;color:var(--text);white-space:nowrap}
+.stones input{padding:7px 9px}
+.common{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;align-items:end;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.common .wide{grid-column:span 2}
+@media(min-width:1000px){
+  .settings .card{display:grid;grid-template-columns:1.1fr 1fr;gap:0 22px}
+  .stones{grid-template-columns:auto 1fr 1fr}
+  .common{margin:0;padding:0 0 0 22px;border-top:0;border-left:1px solid var(--line);grid-template-columns:.7fr 1.6fr .8fr .9fr;align-content:start}
+  .common .wide{grid-column:auto}
+  .settings .hint{grid-column:1/-1;margin-top:10px}
+}
+
+/* 비교표 */
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.toolbar .sp{flex:1}
+.toolbar select{width:auto;padding:7px 26px 7px 10px;font-size:.85rem}
+.summary{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.84rem;color:var(--muted);margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+.summary:empty{display:none}
+.summary b{color:var(--text);font-weight:600}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th,td{padding:6px 6px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;vertical-align:middle}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:500;font-size:.72rem;letter-spacing:.02em}
+th small{display:block;font-size:.64rem;color:var(--faint);font-weight:400;line-height:1.2;margin-top:1px}
+#items th{vertical-align:bottom;padding-bottom:8px}
+#items tbody tr.item{cursor:pointer;transition:background .12s}
+#items tbody tr.item:hover{background:rgba(255,255,255,.025)}
+#items tbody tr.item.sel{background:var(--gold-dim);box-shadow:inset 2px 0 0 var(--gold)}
+#items tbody tr.item.sel td{border-bottom-color:transparent}
+td.in input,td.in select{padding:6px 8px;font-size:.88rem;background:var(--bg);cursor:text}
+td.in select{cursor:pointer}
+td.in.n input{min-width:50px;width:50px}
+td.in.p input{min-width:84px;width:84px}
+td.in.name input{min-width:110px;width:130px}
+td.in.type select{min-width:80px;width:80px}
+td.calc .sub{display:block;font-size:.7rem;color:var(--muted);line-height:1.15;font-weight:400}
+td.act{width:1%;padding-left:10px}
+td.act .hov{opacity:0;transition:opacity .12s}
+tr:hover td.act .hov,tr.sel td.act .hov,td.act .hov:focus-visible{opacity:1}
+.dtools{display:flex;justify-content:flex-end;gap:6px;margin:-4px 0 10px}
+td.calc{color:var(--text)}
+td.calc.big{font-weight:600;font-size:.92rem}
+td.act{text-align:right;white-space:nowrap}
+.chev{display:inline-block;transition:transform .15s}
+tr.sel .chev{transform:rotate(90deg);color:var(--gold2)}
+.empty{padding:28px 16px;text-align:center;color:var(--muted)}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;max-width:760px;margin:0 auto 14px;text-align:left}
+.step{background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;font-size:.84rem}
+.step b{display:block;color:var(--gold2);font-size:.72rem;letter-spacing:.08em;margin-bottom:4px}
+
+/* 상세 (행 아래 인라인) */
+tr.detail>td{padding:0 0 16px;background:var(--gold-dim);text-align:left;white-space:normal;box-shadow:inset 2px 0 0 var(--gold)}
+.dbox{background:var(--card2);border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r) var(--r);padding:16px 18px 18px;margin:0 0 0 2px}
+.insights{margin:0 0 14px;padding:0;list-style:none;display:grid;gap:6px}
+.insights li{padding:9px 14px;border-radius:7px;background:var(--card);border:1px solid var(--line);border-left:3px solid var(--gold);font-size:.9rem;line-height:1.5}
+.insights li.good{border-left-color:var(--good)} .insights li.bad{border-left-color:var(--bad)} .insights li.warn{border-left-color:var(--warn)}
+.insights li b{font-weight:700}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:700px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1000px){.kpis{grid-template-columns:repeat(6,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:11px 13px;min-width:0}
+.kpi .l{font-size:.72rem;color:var(--muted)}
+.kpi .v{font-size:1.12rem;font-weight:600;margin-top:3px;word-break:break-all;color:var(--gold2)}
+.kpi .s{font-size:.72rem;color:var(--muted);margin-top:3px}
+.two{display:grid;grid-template-columns:1fr;gap:18px;margin-top:18px}
+@media(min-width:900px){.two{grid-template-columns:1fr 1fr}}
+.risk{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px}
+.risk .head{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin-bottom:10px}
+.risk .head h3{margin:0;font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold)}
+.risk input[type=range]{flex:1;min-width:140px;accent-color:var(--gold)}
+.risk .nval{font-weight:600;min-width:90px}
+.hist{display:flex;align-items:flex-end;gap:3px;height:84px;padding-top:14px;border-bottom:1px solid var(--line)}
+.hist .bar{flex:1;min-width:6px;max-width:48px;position:relative;background:var(--good);opacity:.85;border-radius:3px 3px 0 0}
+.hist .bar.neg{background:var(--bad)}
+.hist .bar span{position:absolute;left:50%;transform:translateX(-50%);bottom:100%;font-size:.66rem;color:var(--muted);white-space:nowrap;margin-bottom:2px}
+.hist .bar.zero{opacity:.35}
+.hlabels{display:flex;gap:3px;margin-top:4px}
+.hlabels div{flex:1;min-width:6px;max-width:48px;text-align:center;font-size:.68rem;color:var(--muted)}
+.rsum{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.84rem;margin-top:10px}
+.rsum b{font-weight:600}
+footer{margin-top:36px;font-size:.75rem;color:var(--faint);text-align:center;line-height:1.6}
+footer a{color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--gold2);color:var(--gold-ink);padding:8px 16px;border-radius:7px;font-size:.85rem;font-weight:600;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+/* 툴팁 */
+[data-tip]{cursor:help;text-decoration:underline dotted rgba(201,164,92,.55);text-underline-offset:3px}
+th[data-tip],label[data-tip],.kpi .l[data-tip],.h[data-tip]{text-decoration-color:rgba(139,135,127,.6)}
+[data-tip]:hover,[data-tip]:focus-visible{color:var(--gold2);outline:none}
+.tip{position:fixed;z-index:50;max-width:320px;background:#1d1c1f;color:var(--text);border:1px solid var(--line2);border-left:3px solid var(--gold);border-radius:8px;padding:10px 13px;font-size:.82rem;line-height:1.55;box-shadow:0 10px 30px rgba(0,0,0,.5);pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s;text-align:left;white-space:normal;font-weight:400;letter-spacing:0;text-transform:none}
+.tip.show{opacity:1;transform:none}
+.tip b{display:block;color:var(--gold2);font-weight:600;margin-bottom:3px;font-size:.84rem}
+.tip .ex{display:block;margin-top:6px;padding-top:6px;border-top:1px solid var(--line);color:var(--muted);font-size:.78rem}
+
+/* 모바일: 아이템 표만 카드로 */
+@media(max-width:760px){
+  #items{display:block}
+  #items thead{display:none}
+  #items tbody,#items tr,#items td{display:block}
+  #items tbody tr.item{border:1px solid var(--line);border-radius:var(--r);padding:12px;margin-bottom:10px;background:var(--card2)}
+  #items tbody tr.item.sel{border-color:var(--gold);box-shadow:none;border-radius:var(--r) var(--r) 0 0;margin-bottom:0}
+  #items td{border:0;padding:4px 0;text-align:left;white-space:normal;display:flex;justify-content:space-between;align-items:center;gap:10px}
+  #items td::before{content:attr(data-l);color:var(--muted);font-size:.78rem;flex:0 0 auto}
+  #items td.in input,#items td.in select{width:52%}
+  #items td.in.n input,#items td.in.p input{min-width:0}
+  #items td.act{justify-content:flex-end;padding-top:10px;margin-top:6px;border-top:1px solid var(--line)}
+  #items td.act .hov{opacity:1}
+  #items td.act::before{content:none}
+  #items tr.detail>td{display:block;padding:0;box-shadow:none;background:transparent;margin-bottom:10px}
+  #items tr.detail>td::before{content:none}
+  .dbox{border:1px solid var(--gold);border-top:0;margin:0}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>Eclipse <span>강화 수익 계산기</span></h1>
+  <div class="orn">◆</div>
+  <p>공식 장비 강화 확률(2026-10-04) 기준 · 여러 아이템을 입력하고 어떤 장사가 남는지 한 번에 비교 · 가격 단위는 다이아</p>
+</header>
+
+<!-- 공유 설정 -->
+<div class="settings">
+  <div class="card">
+    <div class="stones">
+      <div class="h t" data-tip="stones" tabindex="0">강화석 시세</div><div class="h" data-tip="normal" tabindex="0">일반 (다이아)</div><div class="h" data-tip="blessed" tabindex="0">축복 (다이아)</div>
+      <div class="rl">무기</div><input type="number" data-st="weapon" data-k="n" min="0" step="any" placeholder="개당"><input type="number" data-st="weapon" data-k="b" min="0" step="any" placeholder="개당">
+      <div class="rl">방어구</div><input type="number" data-st="armor" data-k="n" min="0" step="any" placeholder="개당"><input type="number" data-st="armor" data-k="b" min="0" step="any" placeholder="개당">
+      <div class="rl">장신구</div><input type="number" data-st="acc" data-k="n" min="0" step="any" placeholder="개당"><input type="number" data-st="acc" data-k="b" min="0" step="any" placeholder="개당">
+    </div>
+    <div class="common">
+      <div><label data-tip="tax" tabindex="0">판매 수수료 %</label><input type="number" id="g-tax" min="0" max="100" step="0.1"></div>
+      <div class="wide"><label data-tip="mode" tabindex="0">강화석 전략</label>
+        <div class="seg" id="modeSeg">
+          <button data-v="auto">자동 최적</button><button data-v="n">일반만</button><button data-v="b">축복만</button>
+        </div>
+      </div>
+      <div><label data-tip="nPer" tabindex="0">시도당 강화석</label><input type="number" id="g-nPer" min="1" step="1"></div>
+      <div><label data-tip="other" tabindex="0">시도당 기타 비용</label><input type="number" id="g-other" min="0" step="any" placeholder="골드 등"></div>
+    </div>
+    <div class="hint">강화석 시세는 아이템 종류별로, 수수료·전략은 모든 아이템에 적용됩니다. 자동 최적은 단계마다 기대수익이 높은 강화석을 고릅니다.</div>
+  </div>
+</div>
+
+<!-- 비교표 -->
+<section class="card" style="margin-top:12px">
+  <div class="toolbar">
+    <button class="btn primary" id="addBtn">+ 아이템 추가</button>
+    <span class="hint" style="margin:0">마지막 행에서 <kbd>Enter</kbd> 로도 추가 · 행을 클릭하면 상세</span>
+    <span class="sp"></span>
+    <select id="sortSel" title="정렬">
+      <option value="input">입력순</option>
+      <option value="pps">1개 순익 높은순</option>
+      <option value="roi">ROI 높은순</option>
+      <option value="ploss">손해 확률 낮은순</option>
+    </select>
+    <button class="btn" id="shareBtn" title="현재 입력을 담은 링크 복사">링크 복사</button>
+    <button class="btn" id="exportBtn">내보내기</button>
+    <button class="btn" id="importBtn">가져오기</button>
+    <input type="file" id="importFile" accept="application/json" hidden>
+    <button class="btn danger" id="clearBtn">전체 삭제</button>
+  </div>
+  <div class="summary" id="summary"></div>
+  <div class="tbl">
+    <table id="items">
+      <thead>
+        <tr>
+          <th><span data-tip="name" tabindex="0">이름</span></th>
+          <th><span data-tip="type" tabindex="0">종류</span></th>
+          <th><span data-tip="baseLv" tabindex="0">베이스 단계</span></th>
+          <th><span data-tip="basePrice" tabindex="0">베이스 가격</span><small>다이아</small></th>
+          <th><span data-tip="targetLv" tabindex="0">목표 단계</span></th>
+          <th><span data-tip="targetPrice" tabindex="0">목표 가격</span><small>다이아</small></th>
+          <th><span data-tip="over" tabindex="0">오버슈트 가격</span><small>다이아 · 선택</small></th>
+          <th><span data-tip="pps" tabindex="0">1개 뜰 때 순익</span><small>다이아</small></th>
+          <th><span data-tip="roi" tabindex="0">ROI</span></th>
+          <th><span data-tip="be" tabindex="0">본전 시세</span><small>다이아</small></th>
+          <th><span data-tip="ploss" tabindex="0">손해 확률</span><small id="plossN"></small></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="emptyMsg" hidden></div>
+  </div>
+  <div class="note">가격은 모두 다이아. 1개 뜰 때 순익 = 목표 아이템 1개를 손에 넣을 때까지 평균적으로 들어가는 전체 비용(터진 베이스와 강화석 포함)을 세후 판매가에서 뺀 값.</div>
+</section>
+
+<footer>
+  확률 출처: <a href="https://eclipse.onstove.com/ko/probability?menu=004.003" target="_blank" rel="noopener">이클립스 공식 확률 정보 › 장비 강화 확률</a>. 무기·방어구는 같은 확률표, 장신구만 다름. 저주 강화석(1단계 하락)은 계산에 포함하지 않습니다. 모든 결과는 기대값이며 실제 결과는 크게 흔들릴 수 있습니다. 입력은 이 브라우저에 자동 저장됩니다.
+</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+'use strict';
+const MAXLV=20, UNIT='다이아';
+const ROWS_WA={6:[60,0,40],7:[50,0,50],8:[40,0,60],9:[30,0,70],10:[25,5,70],11:[20,5,75],12:[15,5,80],13:[10,5,85],14:[9,5,86],15:[9,5,86],16:[9,5,86],17:[8,5,87],18:[8,5,87],19:[8,5,87]};
+const ROWS_ACC={4:[60,0,40],5:[50,0,50],6:[40,0,60],7:[30,0,70],8:[25,5,70],9:[20,5,75],10:[15,5,80],11:[10,5,85],12:[10,5,85],13:[10,5,85],14:[9,5,86],15:[9,5,86],16:[9,5,86],17:[8,5,87],18:[8,5,87],19:[8,5,87]};
+const TYPES={weapon:{label:'무기',rows:ROWS_WA,safe:6},armor:{label:'방어구',rows:ROWS_WA,safe:6},acc:{label:'장신구',rows:ROWS_ACC,safe:4}};
+function trans(type,L,stone){
+  const r=TYPES[type].rows[L]||[100,0,0];
+  const s=r[0]/100,m=r[1]/100,d=r[2]/100;
+  if(stone==='b'&&L<=18) return {p1:s/2,p2:s/2,pm:m,pd:d};
+  return {p1:s,p2:0,pm:m,pd:d};
+}
+
+// ---------- 계산 엔진 ----------
+function solve(cfg){
+  const {type,start,target:T,prices,pN,pB,nPer,other,tax,mode}=cfg;
+  const priceAt=k=>(prices[k]!=null?prices[k]:prices[T]);
+  const N=MAXLV+1;
+  const V=new Array(N).fill(0),S=new Array(N).fill(0),EA=new Array(N).fill(0),EN=new Array(N).fill(0),EB=new Array(N).fill(0);
+  const D=[],policy=new Array(N).fill(null),tr=new Array(N).fill(null);
+  for(let k=0;k<N;k++) D.push(new Array(N).fill(0));
+  for(let k=T;k<N;k++){V[k]=priceAt(k)*(1-tax);S[k]=1;D[k][k]=1;}
+  for(let L=T-1;L>=start;L--){
+    const cands=mode==='auto'?['n','b']:[mode];
+    let best=null;
+    for(const s of cands){
+      const t=trans(type,L,s),c=(s==='n'?pN:pB)*nPer+other,L2=Math.min(L+2,MAXLV);
+      const v=(-c+t.p1*V[L+1]+t.p2*V[L2])/(1-t.pm);
+      if(!best||v>best.v+1e-12) best={s,v,t,c};
+    }
+    const {p1,p2,pm}=best.t,q=1-pm,L2=Math.min(L+2,MAXLV);
+    V[L]=best.v;policy[L]=best.s;tr[L]=best.t;
+    S[L]=(p1*S[L+1]+p2*S[L2])/q;
+    EA[L]=(1+p1*EA[L+1]+p2*EA[L2])/q;
+    EN[L]=((best.s==='n'?nPer:0)+p1*EN[L+1]+p2*EN[L2])/q;
+    EB[L]=((best.s==='b'?nPer:0)+p1*EB[L+1]+p2*EB[L2])/q;
+    for(let k=0;k<N;k++) D[L][k]=(p1*D[L+1][k]+p2*D[L2][k])/q;
+  }
+  const reach=new Array(N).fill(0),destroyAt=new Array(N).fill(0);
+  reach[start]=1;
+  for(let L=start;L<T;L++){
+    const {p1,p2,pm,pd}=tr[L],q=1-pm,L2=Math.min(L+2,MAXLV);
+    reach[L+1]+=reach[L]*p1/q;
+    if(L2>L+1) reach[L2]+=reach[L]*p2/q;
+    destroyAt[L]=reach[L]*pd/q;
+  }
+  const everAtLeast=new Array(N).fill(0);
+  for(let L=start;L<N;L++){let lost=0;for(let j=start;j<L;j++) lost+=destroyAt[j];everAtLeast[L]=Math.max(0,1-lost);}
+  const base=prices[start];
+  const stoneCost=EN[start]*pN+EB[start]*pB+EA[start]*other;
+  const cost=base+stoneCost;
+  let revenue=0;for(let k=T;k<N;k++) revenue+=D[start][k]*priceAt(k)*(1-tax);
+  const succ=S[start],profit=revenue-cost;
+  return {V,S,EA,EN,EB,D,policy,tr,reach,destroyAt,everAtLeast,base,stoneCost,cost,revenue,succ,profit,
+    costPerSuccess:succ>0?cost/succ:Infinity,
+    profitPerSuccess:succ>0?profit/succ:-Infinity,
+    revPerSuccess:succ>0?revenue/succ:0,
+    breakeven:revenue>0?prices[T]*cost/revenue:Infinity,
+    roi:cost>0?profit/cost:0};
+}
+
+// ---------- 상태 ----------
+const $=id=>document.getElementById(id);
+const KEY='eclipse-enh-calc-v2';
+const emptyStones=()=>({weapon:{n:'',b:''},armor:{n:'',b:''},acc:{n:'',b:''}});
+let state={g:{stones:emptyStones(),tax:7,nPer:1,other:0,mode:'auto',nRuns:50},items:[],sort:'input',sel:null};
+let uid=1;
+const newItem=(o={})=>Object.assign({id:uid++,name:'',type:'acc',start:0,basePrice:'',target:9,targetPrice:'',over:''},o);
+
+function num(v){const n=parseFloat(v);return isNaN(n)?null:n;}
+function fmt(x,dec){if(x==null||!isFinite(x))return '∞';if(dec==null)dec=Math.abs(x)>=100?0:(Math.abs(x)>=10?1:2);return x.toLocaleString('ko-KR',{maximumFractionDigits:dec});}
+function pct(x,dec=1){return (x*100).toLocaleString('ko-KR',{maximumFractionDigits:dec})+'%';}
+function signed(x){return (x>0?'+':'')+fmt(x);}
+function money(x){return `<span class="val">${fmt(x)}<span class="u">${UNIT}</span></span>`;}
+function smoney(x){return `<span class="val">${signed(x)}<span class="u">${UNIT}</span></span>`;}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+let toastT;function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),1800);}
+
+function globals(){
+  const g=state.g,stones={};
+  for(const t in TYPES){const st=(g.stones&&g.stones[t])||{};stones[t]={n:num(st.n)??0,b:num(st.b)??0};}
+  return {stones,tax:(num(g.tax)??7)/100,nPer:Math.max(1,Math.round(num(g.nPer)??1)),other:num(g.other)??0,mode:g.mode,nRuns:Math.max(1,Math.round(num(g.nRuns)??50))};
+}
+function cfgOf(it,opt={}){
+  const g=globals();
+  const start=Math.max(0,Math.min(19,Math.round(num(it.start)??0)));
+  let target=opt.target??Math.round(num(it.target)??(start+1));
+  target=Math.max(start+1,Math.min(MAXLV,target));
+  const basePrice=num(it.basePrice),targetPrice=num(it.targetPrice);
+  if(basePrice==null||targetPrice==null||targetPrice<=0) return null;
+  const prices=new Array(MAXLV+1).fill(null);
+  prices[start]=basePrice;prices[target]=targetPrice;
+  const over=opt.ignoreOver?null:num(it.over);
+  if(over!=null&&over>0&&target+1<=MAXLV&&opt.target==null) prices[target+1]=over;
+  const type=TYPES[it.type]?it.type:'acc';
+  return Object.assign({type,start,target,prices,pN:g.stones[type].n,pB:g.stones[type].b},g);
+}
+function calc(it){const c=cfgOf(it);return c?solve(c):null;}
+function lossProb(r,n){ // n개 돌릴 때 손해 볼 확률 (성공 개수 이항분포, 비용은 평균 근사)
+  const pmf=binom(n,r.succ);let pl=0;
+  for(let k=0;k<=n;k++) if(k*r.revPerSuccess-n*r.cost<0) pl+=pmf[k];
+  return Math.min(1,pl);
+}
+function paintPlossN(){const el=$('plossN');if(el)el.textContent=`${globals().nRuns}개 기준`;}
+
+// ---------- 비교표 ----------
+function rowHTML(it){
+  const typeOpts=Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${it.type===k?' selected':''}>${v.label}</option>`).join('');
+  return `<tr class="item${state.sel===it.id?' sel':''}" data-id="${it.id}">
+    <td class="in name" data-l="이름"><input type="text" data-f="name" value="${esc(it.name)}" placeholder="예: 반지, 귀걸이"></td>
+    <td class="in type" data-l="종류"><select data-f="type">${typeOpts}</select></td>
+    <td class="in n" data-l="베이스 단계"><input type="number" data-f="start" min="0" max="19" step="1" value="${esc(it.start)}"></td>
+    <td class="in p" data-l="베이스 가격"><input type="number" data-f="basePrice" min="0" step="any" value="${esc(it.basePrice)}" placeholder="${UNIT}"></td>
+    <td class="in n" data-l="목표 단계"><input type="number" data-f="target" min="1" max="20" step="1" value="${esc(it.target)}"></td>
+    <td class="in p" data-l="목표 가격"><input type="number" data-f="targetPrice" min="0" step="any" value="${esc(it.targetPrice)}" placeholder="${UNIT}"></td>
+    <td class="in p" data-l="오버슈트 가격"><input type="number" data-f="over" min="0" step="any" value="${esc(it.over)}" placeholder="선택"></td>
+    <td class="calc big" data-l="1개 뜰 때 순익" data-c="pps"></td>
+    <td class="calc" data-l="ROI" data-c="roi"></td>
+    <td class="calc" data-l="본전 시세" data-c="be"></td>
+    <td class="calc" data-l="손해 확률" data-c="ploss"></td>
+    <td class="act"><button class="btn ico hov" data-a="dup" title="복제해서 다른 목표 시험"><svg viewBox="0 0 16 16"><rect x="5.5" y="5.5" width="8" height="8" rx="1.5"/><path d="M10.5 5.5V3.5a1 1 0 0 0-1-1h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2"/></svg></button><button class="btn ico hov danger" data-a="del" title="삭제"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button><button class="btn ico" data-a="toggle" title="상세"><span class="chev"><svg viewBox="0 0 16 16"><path d="M6 3.5l4.5 4.5L6 12.5"/></svg></span></button></td>
+  </tr>`;
+}
+function fillCalc(tr,it){
+  const r=calc(it);
+  const c=n=>tr.querySelector(`[data-c="${n}"]`);
+  if(!r){['pps','roi','be','ploss'].forEach(n=>{c(n).textContent='—';c(n).className='calc'+(n==='pps'?' big':'');});return null;}
+  const ok=r.profit>0;
+  c('pps').textContent=signed(r.profitPerSuccess);c('pps').className='calc big '+(ok?'good':'bad');
+  c('roi').textContent=pct(r.roi);c('roi').className='calc '+(ok?'good':'bad');
+  const tp=num(it.targetPrice),drop=1-r.breakeven/tp;
+  c('be').innerHTML=`${fmt(r.breakeven)}<span class="sub ${drop>=0?'':'bad'}">${drop>=0?'−'+pct(drop,0)+' 까지 버팀':'시세 미달'}</span>`;
+  c('be').className='calc';
+  const pl=lossProb(r,globals().nRuns);
+  c('ploss').textContent=pct(pl);c('ploss').className='calc '+(pl<0.2?'good':pl<0.5?'warn':'bad');
+  return r;
+}
+function sortedItems(){
+  const arr=state.items.slice();
+  if(state.sort==='input') return arr;
+  const n=globals().nRuns;
+  const key={pps:r=>r.profitPerSuccess,roi:r=>r.roi,ploss:r=>-lossProb(r,n)}[state.sort];
+  const score=new Map(arr.map(it=>{const r=calc(it);return [it.id,r?key(r):-Infinity];}));
+  return arr.sort((a,b)=>score.get(b.id)-score.get(a.id));
+}
+function renderRows(){
+  const tb=$('rows');
+  const items=sortedItems();
+  tb.innerHTML=items.map(it=>rowHTML(it)+(state.sel===it.id?`<tr class="detail" data-for="${it.id}"><td colspan="12"></td></tr>`:'')).join('');
+  items.forEach(it=>fillCalc(tb.querySelector(`tr.item[data-id="${it.id}"]`),it));
+  paintPlossN();
+  renderEmpty();
+  renderSummary();
+  renderDetail();
+  save();
+}
+function renderEmpty(){
+  const em=$('emptyMsg');
+  if(state.items.length>0){em.hidden=true;return;}
+  em.hidden=false;
+  em.innerHTML=`<div class="steps">
+    <div class="step"><b>STEP 1</b>위 설정에 강화석 시세와 수수료를 넣습니다.</div>
+    <div class="step"><b>STEP 2</b>아이템을 추가하고 베이스·목표 단계와 거래소 가격을 적습니다.</div>
+    <div class="step"><b>STEP 3</b>행을 클릭하면 결론·리스크·단계별 확률이 펼쳐집니다.</div>
+  </div><button class="btn primary" id="emptyAdd">+ 첫 아이템 추가</button>`;
+  $('emptyAdd').addEventListener('click',addItem);
+}
+function renderSummary(){
+  const g=globals();
+  const res=state.items.map(it=>({it,r:calc(it)})).filter(x=>x.r);
+  const good=res.filter(x=>x.r.profit>0);
+  let best=null;for(const x of res) if(!best||x.r.roi>best.r.roi) best=x;
+  const missing=[...new Set(state.items.map(it=>TYPES[it.type]?it.type:'acc'))].filter(t=>(g.mode!=='b'&&g.stones[t].n===0)||(g.mode!=='n'&&g.stones[t].b===0)).map(t=>TYPES[t].label);
+  const warn=missing.length&&res.length?`<span class="warn">${missing.join('·')} 강화석 시세가 비어 있어 0으로 계산됩니다.</span>`:'';
+  $('summary').innerHTML=warn+(res.length===0
+    ?(state.items.length?'<span>베이스 가격과 목표 가격을 채우면 결과가 계산됩니다.</span>':'')
+    :`<span>아이템 <b>${state.items.length}</b>개 · 이득 <b class="good">${good.length}</b> · 손해 <b class="bad">${res.length-good.length}</b></span>`+
+     (best?`<span>최고 ROI: <b>${esc(best.it.name||'(이름 없음)')}</b> ${pct(best.r.roi)} · 1개 뜰 때 ${signed(best.r.profitPerSuccess)} ${UNIT}</span>`:''));
+}
+
+$('rows').addEventListener('input',e=>{
+  const el=e.target,tr=el.closest('tr.item');if(!tr)return;
+  const it=state.items.find(x=>x.id==tr.dataset.id);if(!it)return;
+  const f=el.dataset.f;if(!f)return;
+  it[f]=el.value;
+  fillCalc(tr,it);renderSummary();
+  if(state.sel===it.id) renderDetail(true);
+  save();
+});
+$('rows').addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  const tr=e.target.closest('tr.item');if(!tr)return;
+  const items=[...$('rows').querySelectorAll('tr.item')];
+  if(tr===items[items.length-1]){e.preventDefault();addItem();}
+});
+function delItem(id){const idx=state.items.findIndex(x=>x.id===id);if(idx<0)return;state.items.splice(idx,1);if(state.sel===id)state.sel=null;renderRows();}
+function dupItem(id){const idx=state.items.findIndex(x=>x.id===id);if(idx<0)return;const src=state.items[idx];const cp=newItem(Object.assign({},src,{id:undefined,name:src.name?src.name+' (복제)':''}));cp.id=uid++;state.items.splice(idx+1,0,cp);state.sel=cp.id;renderRows();focusRow(cp.id,'target');}
+$('rows').addEventListener('click',e=>{
+  const db=e.target.closest('tr.detail button[data-a]');
+  if(db){if(db.dataset.a==='del')delItem(state.sel);else if(db.dataset.a==='dup')dupItem(state.sel);else if(db.dataset.a==='close'){state.sel=null;renderRows();}return;}
+  if(e.target.closest('input,select,tr.detail'))return;
+  const b=e.target.closest('button[data-a]');
+  const tr=e.target.closest('tr.item');if(!tr)return;
+  const id=+tr.dataset.id;
+  if(b&&b.dataset.a==='del'){delItem(id);return;}
+  if(b&&b.dataset.a==='dup'){dupItem(id);return;}
+  state.sel=state.sel===id?null:id;renderRows();
+});
+$('rows').addEventListener('focusout',()=>{setTimeout(()=>{if(state.sort!=='input'&&!$('rows').contains(document.activeElement))renderRows();},0);});
+
+function focusRow(id,f){const el=$('rows').querySelector(`tr.item[data-id="${id}"] [data-f="${f}"]`);if(el){el.focus();el.select&&el.select();}}
+function addItem(){
+  const last=state.items[state.items.length-1];
+  const it=newItem(last?{type:last.type,start:last.start,target:last.target}:{});
+  state.items.push(it);renderRows();focusRow(it.id,'name');
+}
+$('addBtn').addEventListener('click',addItem);
+$('clearBtn').addEventListener('click',()=>{if(state.items.length&&!confirm('모든 아이템을 삭제할까요?'))return;state.items=[];state.sel=null;renderRows();});
+$('sortSel').addEventListener('change',e=>{state.sort=e.target.value;renderRows();});
+
+// ---------- 상세 ----------
+const stoneTag=s=>s==='b'?'<span class="tag b">축복</span>':'<span class="tag">일반</span>';
+function binom(n,p){
+  const out=new Array(n+1).fill(0);
+  if(p<=0){out[0]=1;return out;} if(p>=1){out[n]=1;return out;}
+  for(let k=0;k<=n;k++){let l=0;for(let i=1;i<=k;i++)l+=Math.log(n-k+i)-Math.log(i);out[k]=Math.exp(l+k*Math.log(p)+(n-k)*Math.log(1-p));}
+  return out;
+}
+function insightsFor(it,cfg,r){
+  const T=cfg.target,start=cfg.start,tax=cfg.tax,li=[];
+  const tp=cfg.prices[T],gap=tp/r.breakeven-1;
+  if(r.profit>0) li.push({c:'good',h:`<b>이득.</b> ${TYPES[cfg.type].label} +${start} 베이스를 +${T}까지 밀면 베이스 1개당 평균 <b>${signed(r.profit)} ${UNIT}</b>, 목표 1개 뜰 때마다 <b>${signed(r.profitPerSuccess)} ${UNIT}</b> 남습니다 (ROI ${pct(r.roi)}).`});
+  else li.push({c:'bad',h:`<b>손해.</b> 베이스 1개당 평균 <b>${signed(r.profit)} ${UNIT}</b>. 목표 시세가 최소 <b>${fmt(r.breakeven)} ${UNIT}</b>(현재 ${fmt(tp)})는 되어야 본전입니다.`});
+  const drop=1-r.breakeven/tp;
+  if(r.profit>0) li.push({c:drop>=0.25?'good':'warn',h:`<b>본전 시세 ${fmt(r.breakeven)} ${UNIT}.</b> 목표 시세가 지금보다 <b>${pct(drop,0)}</b> 넘게 빠지면 손해로 바뀝니다. ${drop<0.12?'마진이 얇아 시세 변동에 취약합니다.':drop<0.25?'보통 수준의 여유입니다.':'시세가 꽤 빠져도 버팁니다.'}`});
+  const over=num(it.over);
+  if(over!=null&&over>0&&T<MAXLV){
+    const r0=solve(cfgOf(it,{ignoreOver:true}));
+    const pOverAbs=r.D[start][T+1];
+    if(pOverAbs>1e-9){
+      const share=r.profit>0?(r.profit-r0.profit)/r.profit:0;
+      const pOver=pOverAbs/r.succ;
+      if(r.profit>0&&share>0.3) li.push({c:'warn',h:`<b>수익의 ${pct(share,0)}가 +${T+1} 오버슈트 판매(${fmt(over)} ${UNIT})에 의존합니다.</b> 성공의 ${pct(pOver,0)}가 +${T+1}에 안착하는데, 이 가격에 실제로 팔리지 않으면 1개 순익은 ${signed(r0.profitPerSuccess)} ${UNIT}로 줄어듭니다.`});
+      else li.push({c:'',h:`성공의 ${pct(pOver,0)}는 축복석 덕에 +${T+1}로 튑니다. 오버슈트를 빼고 봐도 1개 순익 ${signed(r0.profitPerSuccess)} ${UNIT}로 결론은 같습니다.`});
+    }
+    const hold=tp*(1-tax);
+    let bestRoll=-Infinity;
+    for(const s of (cfg.mode==='auto'?['n','b']:[cfg.mode])){
+      const t=trans(cfg.type,T,s),c=(s==='n'?cfg.pN:cfg.pB)*cfg.nPer+cfg.other;
+      const v=(-c+(t.p1+t.p2)*over*(1-tax))/(1-t.pm);
+      if(v>bestRoll)bestRoll=v;
+    }
+    if(bestRoll<hold) li.push({c:'warn',h:`<b>+${T}가 뜨면 바로 파세요.</b> +${T+1}을 노리는 시도 1회는 기대값 ${fmt(bestRoll)} ${UNIT}로, 그냥 파는 ${fmt(hold)} ${UNIT}보다 <b>${fmt(hold-bestRoll)} ${UNIT}</b> 손해입니다. +${T+1}은 오버슈트로 공짜로 얻었을 때만 파는 겁니다.`});
+    else li.push({c:'good',h:`<b>+${T}에서 한 번 더 가는 것도 이득입니다.</b> +${T+1} 시도 1회의 기대값 ${fmt(bestRoll)} ${UNIT}가 바로 파는 ${fmt(hold)} ${UNIT}보다 큽니다. 목표를 +${T+1}로 올려서 다시 비교해 보세요.`});
+  }
+  const n=cfg.nRuns,p0=Math.pow(1-r.succ,n);
+  li.push({c:p0>0.2?'warn':'',h:`<b>운의 영역.</b> 평균 ${fmt(1/r.succ,1)}개에 1개 뜹니다. 베이스 ${n}개(약 ${fmt(n*r.cost)} ${UNIT})를 돌려도 하나도 안 뜰 확률이 <b>${pct(p0)}</b>입니다.`});
+  const bl=[];for(let L=start;L<T;L++) if(r.policy[L]==='b') bl.push('+'+L);
+  if(cfg.mode==='auto') li.push({c:'',h:bl.length?`자동 최적은 <b>${bl.join(', ')}</b>에서 축복석, 나머지는 일반석을 씁니다.`:`현재 축복석 시세에서는 모든 단계에서 일반석이 유리합니다.`});
+  return li;
+}
+function renderDetail(){
+  const tr=$('rows').querySelector('tr.detail');
+  if(!tr) return;
+  const it=state.items.find(x=>x.id===state.sel);
+  if(!it){tr.remove();return;}
+  const td=tr.firstElementChild;
+  const cfg=cfgOf(it);
+  if(!cfg){td.innerHTML=`<div class="dbox"><div class="muted">베이스 가격과 목표 가격을 입력하면 분석이 표시됩니다.</div></div>`;return;}
+  const r=solve(cfg),T=cfg.target,start=cfg.start;
+  const li=insightsFor(it,cfg,r).map(x=>`<li class="${x.c}">${x.h}</li>`).join('');
+  const kp=[
+    {k:'succ',l:'목표 도달 확률',v:pct(r.succ,2),s:`베이스 ${fmt(1/r.succ,1)}개당 1개`},
+    {k:'cps',l:'1개 뜰 때 총비용',v:money(r.costPerSuccess),s:'터진 베이스·강화석 포함'},
+    {k:'pps',l:'1개 뜰 때 순익',v:smoney(r.profitPerSuccess),s:`세후 판매 ${fmt(r.revPerSuccess)} − 총비용`},
+    {k:'be',l:'본전 목표 시세',v:money(r.breakeven),s:`현재 ${fmt(cfg.prices[T])}`},
+    {k:'cost',l:'베이스 1개당 기대 비용',v:money(r.cost),s:`베이스 ${fmt(r.base)} + 강화 ${fmt(r.stoneCost)}`},
+    {k:'stones2',l:'베이스 1개당 강화석',v:`${fmt(r.EN[start],2)} · ${fmt(r.EB[start],2)}`,s:`일반 · 축복 / 평균 ${fmt(r.EA[start],2)}회 시도`},
+  ].map(k=>`<div class="kpi"><div class="l" data-tip="${k.k}" tabindex="0">${k.l}</div><div class="v">${k.v}</div><div class="s">${k.s}</div></div>`).join('');
+
+  let lv='<thead><tr><th>단계</th><th><span data-tip="stoneCol" tabindex="0">강화석</span></th><th><span data-tip="p1" tabindex="0">+1</span></th><th><span data-tip="p2" tabindex="0">+2</span></th><th><span data-tip="keep" tabindex="0">유지</span></th><th><span data-tip="destroy" tabindex="0">파괴</span></th><th><span data-tip="reach" tabindex="0">도달</span></th><th><span data-tip="destroyHere" tabindex="0">여기서 파괴</span></th></tr></thead><tbody>';
+  for(let L=start;L<T;L++){const t=r.tr[L];
+    lv+=`<tr><td>+${L}→${L+1}</td><td>${stoneTag(r.policy[L])}</td><td>${pct(t.p1)}</td><td>${t.p2>0?pct(t.p2):'-'}</td><td>${t.pm>0?pct(t.pm,0):'-'}</td><td class="${t.pd>0?'bad':''}">${t.pd>0?pct(t.pd,0):'-'}</td><td>${pct(r.everAtLeast[L])}</td><td>${r.destroyAt[L]>0?pct(r.destroyAt[L]):'-'}</td></tr>`;}
+  const endDist=[];for(let k=T;k<=MAXLV;k++) if(r.D[start][k]>1e-9) endDist.push(`+${k} ${pct(r.D[start][k],2)}`);
+  lv+=`<tr><td><b>+${T} 이상</b></td><td colspan="5" style="text-align:left;color:var(--muted)">종료 분포: ${endDist.join(', ')}</td><td><b>${pct(r.succ,2)}</b></td><td></td></tr></tbody>`;
+
+  let cmp='<thead><tr><th>목표</th><th><span data-tip="succ" tabindex="0">도달 확률</span></th><th><span data-tip="cps" tabindex="0">1개 뜰 때 총비용</span></th><th><span data-tip="be" tabindex="0">본전 시세</span></th><th><span data-tip="curPrice" tabindex="0">현재 시세</span></th></tr></thead><tbody>';
+  const ov=num(it.over);
+  for(let T2=Math.max(start+1,T-2);T2<=Math.min(MAXLV,T+3);T2++){
+    const c2=cfgOf(it,{target:T2});if(!c2)continue;
+    const rr=solve(c2);
+    const be=rr.costPerSuccess/(1-cfg.tax);
+    let cur='<span class="muted">-</span>',pr=null;
+    if(T2===T)pr=cfg.prices[T];else if(T2===T+1&&ov>0)pr=ov;
+    if(pr!=null)cur=`${fmt(pr)} <span class="${pr>=be?'good':'bad'}">(${pr>=be?'+':''}${pct(pr/be-1,0)})</span>`;
+    cmp+=`<tr${T2===T?' style="font-weight:600"':''}><td>+${T2}${T2===T?' (현재)':''}</td><td>${pct(rr.succ,2)}</td><td>${fmt(rr.costPerSuccess)}</td><td>${fmt(be)}</td><td>${cur}</td></tr>`;
+  }
+  cmp+='</tbody>';
+
+  td.innerHTML=`<div class="dbox">
+    <div class="dtools"><button class="btn icon" data-a="dup">복제해서 다른 목표 시험</button><button class="btn icon danger" data-a="del">이 아이템 삭제</button><button class="btn icon" data-a="close">접기 ▴</button></div>
+    <ul class="insights">${li}</ul>
+    <div class="kpis">${kp}</div>
+    <div class="risk" id="risk"></div>
+    <div class="two">
+      <div><h2 class="sec">단계별 확률 <small>선택된 전략 기준</small></h2><div class="tbl"><table>${lv}</table></div>
+        <div class="note">도달: 그 단계 이상에 한 번이라도 도달할 확률. 여기서 파괴: 전체 시도 중 이 단계에서 터질 확률.</div></div>
+      <div><h2 class="sec">목표를 바꾸면 <small>각 단계를 목표로 할 때 필요한 최소 시세</small></h2><div class="tbl"><table>${cmp}</table></div>
+        <div class="note">본전 시세보다 거래소 시세가 높은 단계만 장사가 됩니다. 오버슈트 가격을 넣으면 +${T+1} 행에 비교가 표시됩니다.</div></div>
+    </div>
+  </div>`;
+  renderRisk(cfg,r);
+}
+function renderRisk(cfg,r){
+  const box=$('risk');if(!box)return;
+  box.innerHTML=`<div class="head"><h3><span data-tip="risk" tabindex="0">리스크 · 베이스 몇 개를 돌릴까</span></h3>
+      <input type="range" id="nRange" min="1" max="300" step="1" value="${cfg.nRuns}">
+      <span class="nval" id="nVal"></span></div>
+    <div class="hist" id="hist"></div><div class="hlabels" id="hlabels"></div>
+    <div class="note" style="margin-top:4px">가로축: 성공 개수. 빨간 막대는 그 개수로는 손해, 초록은 이익. 슬라이더를 끌어 개수를 바꿔 보세요.</div>
+    <div class="rsum" id="rsum"></div>`;
+  const range=$('nRange');
+  const draw=n=>{
+    const p=r.succ,pmf=binom(n,p),sell=r.revPerSuccess,cost=r.cost;
+    const profitK=k=>k*sell-n*cost;
+    let pLoss=0,eLoss=0,eGain=0,pGain=0;
+    pmf.forEach((pk,k)=>{const pr=profitK(k);if(pr<0){pLoss+=pk;eLoss+=pk*pr;}else{pGain+=pk;eGain+=pk*pr;}});
+    let K=0,cum=0;for(let k=0;k<=n;k++){cum+=pmf[k];K=k;if(cum>0.995)break;}
+    K=Math.max(K,1);
+    const maxp=Math.max(...pmf.slice(0,K+1));
+    let bars='',labels='';
+    for(let k=0;k<=K;k++){
+      const h=Math.max(2,pmf[k]/maxp*70),pr=profitK(k);
+      bars+=`<div class="bar${pr<0?' neg':''}${pmf[k]<0.005?' zero':''}" style="height:${h}px" title="${k}개 성공: 확률 ${pct(pmf[k])}, 손익 ${signed(pr)} ${UNIT}">${pmf[k]>=0.04?`<span>${pct(pmf[k],0)}</span>`:''}</div>`;
+      labels+=`<div>${k}</div>`;
+    }
+    $('nVal').innerHTML=`${n}개 <span class="muted">· ${fmt(n*cost)} ${UNIT}</span>`;
+    $('hist').innerHTML=bars;$('hlabels').innerHTML=labels;
+    $('rsum').innerHTML=`
+      <span>손해 볼 확률 <b class="${pLoss>0.5?'bad':'warn'}">${pct(pLoss)}</b> <span class="muted">(손해일 때 평균 ${fmt(pLoss>0?eLoss/pLoss:0)} ${UNIT})</span></span>
+      <span>이익 볼 확률 <b class="good">${pct(pGain)}</b> <span class="muted">(이익일 때 평균 +${fmt(pGain>0?eGain/pGain:0)} ${UNIT})</span></span>
+      <span>총 기대 손익 <b class="${n*r.profit>0?'good':'bad'}">${signed(n*r.profit)} ${UNIT}</b></span>
+      <span>평균 성공 <b>${fmt(n*p,2)}개</b></span>`;
+  };
+  draw(cfg.nRuns);
+  range.addEventListener('input',e=>{
+    const n=Math.max(1,+e.target.value);
+    state.g.nRuns=n;save();draw(n);paintPlossN();
+    state.items.forEach(it=>{const tr=$('rows').querySelector(`tr.item[data-id="${it.id}"]`);if(tr)fillCalc(tr,it);});
+  });
+}
+
+// ---------- 툴팁 ----------
+const TIPS={
+  stones:{t:'강화석 시세',b:'거래소에서 강화석을 사는 개당 가격입니다. 무기·방어구·장신구 강화석은 서로 다른 아이템이라 각각 입력하고, 아이템 행의 종류에 맞는 시세가 자동으로 쓰입니다.'},
+  normal:{t:'일반 강화석',b:'한 번 성공하면 +1 오릅니다. 공식 확률표의 성공·유지·파괴 확률이 그대로 적용됩니다.'},
+  blessed:{t:'축복 강화석',b:'전체 성공 확률은 일반과 같지만 성공의 절반이 <b style="display:inline;color:inherit">+2 점프</b>입니다. 위험한 구간을 한 단계 건너뛸 수 있어서 비싸도 유리한 구간이 있습니다. 19강에서는 +2가 없습니다.',ex:'예: +7에서 축복석 성공 시 50%는 +8, 50%는 +9.'},
+  tax:{t:'판매 수수료',b:'거래소에서 팔 때 정산 금액에서 떼는 비율입니다. 모든 판매가는 이 수수료를 뺀 세후 금액으로 계산됩니다.',ex:'7%면 2,400에 팔아도 손에 쥐는 건 2,232.'},
+  mode:{t:'강화석 전략',b:'<b style="display:inline;color:inherit">자동 최적</b>: 단계마다 일반·축복 중 기대수익이 높은 쪽을 고릅니다. <b style="display:inline;color:inherit">일반만 / 축복만</b>: 모든 단계에서 한 종류만 씁니다. 상세의 단계별 확률표에서 어떤 돌을 쓰는지 볼 수 있습니다.'},
+  nPer:{t:'시도당 강화석 개수',b:'강화 1회에 소모되는 강화석 개수입니다. 게임에서 1회에 여러 개를 요구하면 그 수를 넣으세요. 기본 1.'},
+  other:{t:'시도당 기타 비용',b:'강화 1회마다 강화석 외에 드는 비용(골드 수수료 등)을 다이아로 환산한 값입니다. 없으면 0.'},
+  base:{t:'베이스 (사는 것)',b:'거래소에서 사 와서 강화 재료로 쓰는 아이템입니다. 보통 0강이나 안전강화만 된 +6(무기·방어구) / +4(장신구)를 삽니다. 실패해서 터지면 이 아이템과 쓴 강화석이 전부 날아갑니다.'},
+  baseLv:{t:'베이스 단계',b:'사 올 때의 강화 수치입니다. 무기·방어구는 +6, 장신구는 +4까지 100% 성공이라 이 단계까지는 강화석 값만 들고 위험이 없습니다.'},
+  basePrice:{t:'베이스 가격',b:'베이스 아이템 1개의 거래소 시세(다이아)입니다. 터질 때마다 이 금액을 잃습니다.'},
+  target:{t:'목표 (파는 것)',b:'강화해서 팔려는 단계와 그 거래소 시세입니다. 이 단계에 도달하면 바로 판다고 가정하고 계산합니다.'},
+  targetLv:{t:'목표 단계',b:'도달하면 판매할 강화 수치입니다. 베이스 단계보다 커야 합니다. 높을수록 도달 확률이 급격히 떨어지니 상세의 「목표를 바꾸면」 표로 단계별 본전 시세를 비교해 보세요.'},
+  targetPrice:{t:'목표 가격',b:'목표 단계 아이템의 거래소 시세(다이아)입니다. 수수료를 뗀 금액이 실제 매출로 잡힙니다.'},
+  over:{t:'오버슈트 가격 (선택)',b:'축복 강화석은 성공의 절반이 +2라서, 목표 바로 아래 단계에서 축복석이 터지면 <b style="display:inline;color:inherit">목표보다 한 단계 높은</b> 아이템이 나옵니다. 그 아이템을 팔 가격입니다. 비우면 목표 가격과 같다고 봅니다.',ex:'목표 +9, 오버슈트 4,000이면 +10이 나왔을 때 4,000에 판다고 계산. 일부러 +10을 노리는 것과는 다릅니다. 상세의 인사이트가 둘을 비교해 줍니다.'},
+  result:{t:'결과',b:'모든 금액은 수수료를 뗀 세후 기준, 터진 베이스와 쓴 강화석 비용을 전부 포함한 기대값입니다. 순익·ROI는 평균, 본전 시세는 손절 기준, 손해 확률은 운이 나쁠 가능성입니다.'},
+  name:{t:'이름',b:'구분용 메모입니다. 계산에는 쓰이지 않습니다.'},
+  type:{t:'종류',b:'무기와 방어구는 확률표가 같고(+6까지 안전), 장신구는 +4까지만 안전합니다. 강화석 시세도 종류별로 위 설정의 해당 행이 적용됩니다.'},
+  pps:{t:'1개 뜰 때 순익 (다이아)',b:'목표 아이템 1개를 손에 넣을 때까지 평균적으로 쓰는 전체 비용(그 사이 터진 베이스와 모든 강화석 포함)을 세후 판매가에서 뺀 금액입니다. 오버슈트 판매가 있으면 그 기대 매출도 포함됩니다.',ex:'44개에 1개 뜨면 베이스 44개 + 강화석 전부가 그 1개의 원가.'},
+  roi:{t:'ROI',b:'순익 ÷ 투입 비용. 가격대가 다른 아이템끼리 효율을 비교할 때 봅니다. 금액이 큰 장사보다 ROI가 높은 장사가 자금 대비 효율이 좋습니다.'},
+  ploss:{t:'손해 확률',b:'베이스를 머리글에 적힌 개수만큼 돌렸을 때 총 손익이 마이너스로 끝날 확률입니다. 성공 개수가 운에 따라 흔들리는 것을 반영한 값이라, ROI가 높아도 도달 확률이 낮으면 이 숫자가 큽니다. 개수는 상세의 리스크 슬라이더로 바꿉니다.',ex:'ROI 36%라도 50개 돌려 하나도 안 뜰 확률 32%면 손해 확률 32%.'},
+  succ:{t:'목표 도달 확률',b:'베이스 1개가 중간에 터지지 않고 목표 단계 이상에 도달할 확률입니다. 역수가 「평균 몇 개에 1개 뜨는지」입니다.'},
+  cps:{t:'1개 뜰 때 총비용',b:'베이스 1개당 기대 비용 ÷ 도달 확률. 성공한 1개가 짊어지는 전체 원가입니다.'},
+  be:{t:'본전 시세',b:'이 가격 구조에서 목표 아이템을 얼마에 팔아야 손익이 0이 되는지입니다(수수료 반영). 거래소 시세가 이 밑으로 내려가면 접어야 합니다. 괄호는 지금 시세에서 몇 %까지 빠져도 버티는지입니다.',ex:'시세 2,400, 본전 1,762면 −27%까지 버팀.'},
+  cost:{t:'베이스 1개당 기대 비용',b:'베이스 1개를 사서 성공하든 터지든 끝까지 갔을 때 평균적으로 쓰는 돈입니다. 베이스 가격 + 평균 강화석 소모 + 기타 비용.'},
+  stones2:{t:'베이스 1개당 강화석',b:'베이스 1개를 돌릴 때 평균적으로 소모되는 일반·축복 강화석 개수와 평균 시도 횟수입니다. 실패로 터져도 그때까지 쓴 돌은 소모됩니다.'},
+  curPrice:{t:'현재 시세',b:'표에 입력한 목표 가격(과 오버슈트 가격)입니다. 괄호는 본전 시세 대비 여유. 다른 단계는 시세를 모르니 비워 두었습니다. 거래소에서 확인해 본전 시세와 비교하세요.'},
+  stoneCol:{t:'강화석',b:'선택된 전략에서 이 단계에 쓰는 강화석입니다. 자동 최적이면 단계마다 기대수익이 높은 쪽이 골라집니다.'},
+  p1:{t:'+1 성공',b:'이 단계에서 한 단계 오를 확률.'},
+  p2:{t:'+2 성공',b:'축복 강화석일 때 두 단계 오를 확률. 일반석은 없습니다.'},
+  keep:{t:'유지',b:'실패했지만 파괴되지 않고 단계가 그대로인 확률. 강화석만 소모됩니다. 공식표에서 10강 이상(장신구 8강 이상)부터 5%.'},
+  destroy:{t:'파괴',b:'이 단계에서 시도했을 때 아이템이 사라질 확률.'},
+  reach:{t:'도달',b:'베이스에서 출발해 이 단계 이상에 한 번이라도 도달할 확률입니다. 아래로 갈수록 줄어듭니다.'},
+  destroyHere:{t:'여기서 파괴',b:'베이스 1개를 돌렸을 때 다른 곳이 아닌 바로 이 단계에서 터질 확률입니다. 전부 더하면 1 − 도달 확률.'},
+  risk:{t:'리스크',b:'베이스를 N개 돌렸을 때 성공 개수가 몇 개 나올지의 확률 분포입니다. 각 막대는 그 개수가 나올 확률이고, 그 개수로는 손해면 빨강, 이익이면 초록입니다. 슬라이더로 N을 바꿔 보세요. 손익은 평균 비용 기준의 근사치입니다.'},
+};
+(function tooltips(){
+  const tip=document.createElement('div');tip.className='tip';document.body.appendChild(tip);
+  let cur=null,pinned=false;
+  function show(el){
+    const d=TIPS[el.dataset.tip];if(!d)return;
+    cur=el;
+    tip.innerHTML=`<b>${d.t}</b>${d.b}${d.ex?`<span class="ex">${d.ex}</span>`:''}`;
+    tip.classList.add('show');
+    const r=el.getBoundingClientRect(),vw=window.innerWidth,vh=window.innerHeight;
+    tip.style.left='0px';tip.style.top='0px';
+    const tw=tip.offsetWidth,th=tip.offsetHeight;
+    let x=r.left+r.width/2-tw/2;x=Math.max(8,Math.min(vw-tw-8,x));
+    let y=r.bottom+8;if(y+th>vh-8)y=r.top-th-8;if(y<8)y=8;
+    tip.style.left=x+'px';tip.style.top=y+'px';
+  }
+  function hide(){tip.classList.remove('show');cur=null;pinned=false;}
+  document.addEventListener('mouseover',e=>{const el=e.target.closest('[data-tip]');if(el&&el!==cur&&!pinned)show(el);});
+  document.addEventListener('mouseout',e=>{const el=e.target.closest('[data-tip]');if(el&&!pinned&&!el.contains(e.relatedTarget))hide();});
+  document.addEventListener('focusin',e=>{const el=e.target.closest('[data-tip]');if(el)show(el);});
+  document.addEventListener('focusout',e=>{if(!pinned)hide();});
+  document.addEventListener('click',e=>{const el=e.target.closest('[data-tip]');if(el){e.stopPropagation();if(cur===el&&pinned){hide();}else{show(el);pinned=true;}}else if(pinned)hide();},true);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')hide();});
+  window.addEventListener('scroll',()=>{if(cur&&!pinned)hide();},{passive:true});
+})();
+
+// ---------- 공유 설정 ----------
+['tax','nPer','other'].forEach(f=>{const el=$('g-'+f);el.addEventListener('input',()=>{state.g[f]=el.value;refreshAll();});});
+document.querySelectorAll('input[data-st]').forEach(el=>{el.addEventListener('input',()=>{state.g.stones[el.dataset.st][el.dataset.k]=el.value;refreshAll();});});
+function paintMode(){[...$('modeSeg').children].forEach(b=>b.classList.toggle('on',b.dataset.v===state.g.mode));}
+$('modeSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;state.g.mode=b.dataset.v;paintMode();refreshAll();});
+function refreshAll(){
+  const tb=$('rows');
+  state.items.forEach(it=>{const tr=tb.querySelector(`tr.item[data-id="${it.id}"]`);if(tr)fillCalc(tr,it);});
+  renderSummary();renderDetail();save();
+}
+
+// ---------- 저장/공유 ----------
+function serialize(){return {g:state.g,sort:state.sort,items:state.items.map(({name,type,start,basePrice,target,targetPrice,over})=>({name,type,start,basePrice,target,targetPrice,over}))};}
+function applyData(d){
+  if(!d||typeof d!=='object')return false;
+  const g=d.g||{},stones=emptyStones();
+  for(const t in stones){const st=(g.stones&&g.stones[t])||{};stones[t].n=st.n??g.pN??'';stones[t].b=st.b??g.pB??'';}
+  state.g=Object.assign({tax:7,nPer:1,other:0,mode:'auto',nRuns:50},g,{stones});delete state.g.pN;delete state.g.pB;
+  state.sort=['input','pps','roi','ploss'].includes(d.sort)?d.sort:'input';
+  state.items=(Array.isArray(d.items)?d.items:[]).map(x=>{
+    let over=x.over??'';
+    if(over===''&&x.extra&&typeof x.extra==='object'){const t=Math.round(num(x.target)??9);if(x.extra[t+1]!=null)over=x.extra[t+1];}
+    return newItem({name:String(x.name??''),type:TYPES[x.type]?x.type:'acc',start:x.start??0,basePrice:x.basePrice??'',target:x.target??9,targetPrice:x.targetPrice??'',over});
+  });
+  state.sel=null;return true;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(serialize()));}catch(e){}}
+function b64e(s){return btoa(unescape(encodeURIComponent(s))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function b64d(s){s=s.replace(/-/g,'+').replace(/_/g,'/');return decodeURIComponent(escape(atob(s)));}
+$('shareBtn').addEventListener('click',async()=>{
+  const url=location.origin+location.pathname+'#d='+b64e(JSON.stringify(serialize()));
+  try{await navigator.clipboard.writeText(url);toast('링크를 복사했습니다');}catch(e){prompt('이 링크를 복사하세요',url);}
+});
+$('exportBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(serialize(),null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='eclipse-enhance-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+});
+$('importBtn').addEventListener('click',()=>$('importFile').click());
+$('importFile').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  f.text().then(t=>{try{if(applyData(JSON.parse(t))){bindGlobals();renderRows();toast('가져왔습니다');}}catch(err){toast('파일을 읽을 수 없습니다');}});
+  e.target.value='';
+});
+function bindGlobals(){['tax','nPer','other'].forEach(f=>$('g-'+f).value=state.g[f]??'');document.querySelectorAll('input[data-st]').forEach(el=>el.value=state.g.stones[el.dataset.st][el.dataset.k]??'');paintMode();$('sortSel').value=state.sort;}
+
+// ---------- 시작 ----------
+(function init(){
+  let loaded=false;
+  const m=location.hash.match(/#d=([A-Za-z0-9_-]+)/);
+  if(m){try{loaded=applyData(JSON.parse(b64d(m[1])));history.replaceState(null,'',location.pathname);if(loaded)toast('공유된 입력을 불러왔습니다');}catch(e){}}
+  if(!loaded){try{loaded=applyData(JSON.parse(localStorage.getItem(KEY)||'null'));}catch(e){}}
+  bindGlobals();renderRows();
+})();
+})();
+</script>
+</body>
+</html>
